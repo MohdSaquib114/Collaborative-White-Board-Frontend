@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react"
 import toast from 'react-hot-toast';
 import gsap from "gsap";
+import { useRoomContext } from "@/components/RoomContext";
 
 
 
@@ -25,6 +26,7 @@ export default function Home() {
     const headingRef = useRef(null)
     const introRef = useRef(null)
     const formRef = useRef(null)
+    const {setRoomId,setHost} = useRoomContext()
     // const [isDrwaing,setIsDrawing] = useState(false)
      
 useEffect(()=>{
@@ -57,12 +59,50 @@ useEffect(()=>{
      setWebSocket(ws)
       ws.onmessage = (e) => {
         const response = JSON.parse(e.data)
+        console.log(response)
         if(response.success){
-           if(response.roomId){
-            
-           }
+          if(response.type === "createRoom"){
+            setHost(response.username)
+          }
+         
+            setRoomId(response.roomId)
+            gsap.to(headingRef.current, {
+              opacity:0,
+              y:-20,
+              duration:1
+            })
+            gsap.to(introRef.current, {
+              opacity:0,
+              x:-20,
+              duration:1
+            })
+            gsap.to(formRef.current, {
+              opacity:0,
+              x:20,
+              duration:1
+            })
+            const start = Date.now();
+
+            while (Date.now() - start < 2000) {
+                // Busy-wait for 5 seconds (not recommended in production)
+            }
             router.push("/room")
             setLoading(false)
+            gsap.from(headingRef.current, {
+              opacity:0,
+              y:-20,
+              duration:0
+            })
+            gsap.from(introRef.current, {
+              opacity:0,
+              x:-20,
+              duration:0
+            })
+            gsap.from(formRef.current, {
+              opacity:0,
+              x:20,
+              duration:0
+            })
         }
         
       }
@@ -70,7 +110,7 @@ useEffect(()=>{
         ws.close();
         console.log("connection closed")
       };
-    },[router])
+    },[router,setHost,setRoomId])
 
     useEffect(() => {
       const canvas = canRef.current;
@@ -160,7 +200,7 @@ useEffect(()=>{
         <div className="absolute pointer-events-none inset-0 flex items-center justify-center bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_50%,black)]"></div>
      <canvas
      ref={canRef}
-     className="absolute h-full w-full   border-4 border-black"
+     className="absolute h-full w-full   "
      width={800}
      height={600}
      />
