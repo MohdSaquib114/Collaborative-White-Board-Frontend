@@ -27,32 +27,10 @@ export default function Home() {
     const introRef = useRef(null)
     const formRef = useRef(null)
     const {setRoomId,setHost} = useRoomContext()
-    // const [isDrwaing,setIsDrawing] = useState(false)
-     
-useEffect(()=>{
   
-  gsap.from(headingRef.current, {
-    opacity:0,
-    y:-20,
-    duration:1
-  })
-  gsap.from(introRef.current, {
-    opacity:0,
-    x:-20,
-    duration:1
-  })
-  gsap.from(formRef.current, {
-    opacity:0,
-    x:20,
-    duration:1
-  })
- 
-  return () =>{
    
-}
-},
-[]
-)
+  
+
 
     useEffect(()=>{
      const ws = new WebSocket("ws://localhost:8080")
@@ -62,7 +40,8 @@ useEffect(()=>{
         console.log(response)
         if(response.success){
           if(response.type === "createRoom"){
-            setHost(response.username)
+            console.log(response.host)
+            setHost(response.host)
           }
          
             setRoomId(response.roomId)
@@ -83,7 +62,7 @@ useEffect(()=>{
             })
             const start = Date.now();
 
-            while (Date.now() - start < 2000) {
+            while (Date.now() - start < 1000) {
                 // Busy-wait for 5 seconds (not recommended in production)
             }
             router.push("/room")
@@ -103,12 +82,14 @@ useEffect(()=>{
               x:20,
               duration:0
             })
+        }else{
+          toast(response?.message)
         }
         
       }
      return () => {
         ws.close();
-        console.log("connection closed")
+       
       };
     },[router,setHost,setRoomId])
 
@@ -205,18 +186,18 @@ useEffect(()=>{
      height={600}
      />
     <div className=" flex flex-col gap-20  " >
-      <h1 ref={headingRef} className="text-7xl font-extrabold text-center select-none">Collaborative White Board</h1>
+      <h1 ref={headingRef} className="text-7xl font-extrabold text-center select-none animate-fadeDown ">Collaborative White Board</h1>
 
 
     
    <div className="grid sm:grid-cols-3 mx-20  p-10 select-none">
 
-      <div ref={introRef} className="space-y-5 col-span-2 px-10 self-center">
+      <div ref={introRef} className="space-y-5 col-span-2 px-10 self-center animate-fadeLeft ">
         <h2 className="text-3xl font-bold">Unleash Your Creativity with Our Online Whiteboard</h2>
         <p className="text-xl text-slate-700 font-semibold ">Welcome to your ultimate collaborative space where ideas flow freely, and creativity knows no bounds. Whether you are brainstorming, teaching, designing, or managing tasks, our whiteboard has you covered.</p>
       </div>
      
-        <form ref={formRef} className="flex flex-col  space-y-6 p-10  z-50 border rounded-md shadow-2xl bg-white/75  saturate-100 backdrop-blur-sm backdrop-opacity-55">
+        <form ref={formRef} className="flex flex-col animate-fadeRight   space-y-6 p-10  z-50 border rounded-md shadow-2xl bg-white/75  saturate-100 backdrop-blur-sm backdrop-opacity-55">
             <h3 className="text-center text-lg font-medium" >Join or Create A Room</h3>
                 <input className=" text-sm text-slate-500 font-medium focus:outline-none border-2 px-2 py-3 rounded-md " onChange={(e)=>setFormData({...formData,username:e.target.value})} value={formData.username}  title="username" type="text" placeholder="Username" />
                 <input className=" text-sm text-slate-500 font-medium focus:outline-none border-2 px-2 py-3 rounded-md " onChange={(e)=>setFormData({...formData,roomId:e.target.value})} value={formData.roomId} title="room-id" type="text" placeholder="Room ID (required for joining)" />

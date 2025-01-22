@@ -31,6 +31,7 @@ export const RoomProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useRoomContext = (): RoomContextType => {
   const context = useContext(RoomContext);
+
   if (!context) {
     throw new Error("useRoomContext must be used within a RoomProvider");
   }
