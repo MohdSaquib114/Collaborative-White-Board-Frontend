@@ -2,17 +2,25 @@
 
 import { useRoomContext } from "@/components/RoomContext"
 import { useEffect, useRef, useState } from "react"
-import {Copy,Pencil,Minus,Circle,Square,ALargeSmall } from "lucide-react"
+import {Copy,Pencil,Minus,Circle,Square } from "lucide-react"
+
+type Position = {
+    x:number,
+    y:number
+}
 
 export default function Page() {
     const [, setWebSocket] = useState<WebSocket | null>(null)
     const { roomId } = useRoomContext()
     const canvasRef = useRef<HTMLCanvasElement>(null)
-   
-    // const [isDrawing, setIsDrawing] = useState(false)
+    const [currentTool,setTool] = useState("PENCIL")
+    const [shapes, setShapes] = useState({ lines: [], rects: [], arcs: [], pencils: [] });
+ 
+  
    
     
 const colors = ["red","green","yellow","green","red","slate","fuchsia","blue","sky","cyan","teal","gray"]
+
 
 
     useEffect(() => {
@@ -20,6 +28,7 @@ const colors = ["red","green","yellow","green","red","slate","fuchsia","blue","s
             if (typeof window !== 'undefined') {
                 const ws = new WebSocket("ws://localhost:8080")
                 setWebSocket(ws)
+               
                 ws.onopen = () =>{
                console.log("inside open fn",roomId)
                     ws.send(JSON.stringify({
@@ -43,356 +52,203 @@ const colors = ["red","green","yellow","green","red","slate","fuchsia","blue","s
     }, [roomId])
 
  
-
-   
-   
-
-
-    // useEffect(() => {
-    //     if (!canvasRef.current) {
-    //       return;
-    //     }
-      
-    //     let isDraw = false;
-    //     const startingPos = { x: 0, y: 0 };
-    //     const canvas = canvasRef.current;
-    //     const context = canvas.getContext("2d");
-    //     const lines: { start: { x: number; y: number }; end: { x: number; y: number } }[] = [];
-      
-    //     const startDrawing = (e: MouseEvent) => {
-    //       const x = e.clientX - canvas.offsetLeft;
-    //       const y = e.clientY - canvas.offsetTop;
-    //       startingPos.x = x;
-    //       startingPos.y = y;
-    //       isDraw = true;
-    //     };
-      
-    //     const drawingLine = (e: MouseEvent) => {
-    //       if (!isDraw || !context) return;
-      
-    //       const x = e.clientX - canvas.offsetLeft;
-    //       const y = e.clientY - canvas.offsetTop;
-      
-    //       // Clear the canvas and redraw all saved lines
-    //       redrawLines();
-      
-    //       // Draw the temporary line
-    //       drawLine(startingPos, { x, y });
-    //     };
-      
-    //     const stopDrawing = (e: MouseEvent) => {
-    //       if (!isDraw) return;
-    //       isDraw = false;
-      
-    //       const x = e.clientX - canvas.offsetLeft;
-    //       const y = e.clientY - canvas.offsetTop;
-      
-    //       // Save the finalized line
-    //       lines.push({ start: { ...startingPos }, end: { x, y } });
-    //       // Redraw everything to include the new line
-    //       redrawLines();
-    //     };
-        
-    //     const drawLine = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    //         if (!context) return;
-      
-    //         context.beginPath(); // Start a new path
-    //         context.moveTo(start.x, start.y);
-    //         context.lineTo(end.x, end.y);
-    //         context.strokeStyle = "black";
-    //         context.lineWidth = 5
-    //         context.stroke();
-    //         context.closePath(); // Optional, ensures path closure
-    //     };
-        
-    //     const redrawLines = () => {
-    //         if (!context) return;
-            
-    //         context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    //         lines.forEach(({ start, end }) => drawLine(start, end)); // Redraw all saved lines
-    //     };
-        
-    //     // Event listeners
-    //     canvas.addEventListener("mousedown", startDrawing);
-    //     canvas.addEventListener("mousemove", drawingLine);
-    //     canvas.addEventListener("mouseup", stopDrawing);
-        
-    //     return () => {
-    //         canvas.removeEventListener("mousedown", startDrawing);
-    //         canvas.removeEventListener("mousemove", drawingLine);
-    //         canvas.removeEventListener("mouseup", stopDrawing);
-    //     };
-    //   }, []);
-      
-      
-      //Circles///////////////////////////////////////////////////////////
-    // useEffect(() => {
-    //     if (!canvasRef.current) {
-        //       return;
-    //     }
-      
-    //     let isDraw = false;
-    //     const startingPos = { x: 0, y: 0 };
-    //     const canvas = canvasRef.current;
-    //     const context = canvas.getContext("2d");
-    //     const circles = []; // Store all finalized rectangles
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
     
-    //     const startDrawing = (e: MouseEvent) => {
-        //       const x = e.clientX - canvas.offsetLeft;
-        //       const y = e.clientY - canvas.offsetTop;
-        //       startingPos.x = x;
-        //       startingPos.y = y;
-        //       isDraw = true;
-        //     };
-        
-        //     const drawingCircle = (e: MouseEvent) => {
-            //       if (!isDraw || !context) return;
-            
-            //       const x = e.clientX - canvas.offsetLeft;
-            //       const y = e.clientY - canvas.offsetTop;
-            
-            //       // Clear the canvas and redraw all finalized rectangles
-            //     //   redrawAllRectangles();
-            //   redrawCircles()
-    //       // Draw the temporary rectangle
-    //       drawCircle(startingPos, { x, y });
-    //     };
-      
-    //     const stopDrawing = (e: MouseEvent) => {
-    //         if (!isDraw) return;
-    //               isDraw = false;
-              
-    //               const x = e.clientX - canvas.offsetLeft;
-    //               const y = e.clientY - canvas.offsetTop;
-              
-    //               // Add the finalized rectangle to the array
-    //               circles.push({ start: { ...startingPos }, end: { x, y } });
-              
-    //               // Redraw everything to include the new rectangle
-    //               redrawCircles();
-    //     };
-      
-    //     const drawCircle = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-        //       if (!context) return;
-      
-        
-        //       context.strokeStyle = "black";
-        //       let radius = end.x-start.x
-        
-        //       if(radius < 0 ){
-           
-        //         radius = radius * -1
-        //       } 
-        
-        //       context.beginPath(); // Start a new path
-        //       context.arc(start.x, start.y, radius, 0, 2 * Math.PI);
-        //       context.strokeStyle = "black";
-        //       context.stroke();
-    //       context.closePath();
-       
-    //     };
-    //     const redrawCircles = () => {
-        //               if (!context) return;
-        
-        //               context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    //               circles.forEach(({ start, end }) => drawCircle(start, end)); // Redraw all saved rectangles
-    //             };
-      
-    //     // const redrawAllRectangles = () => {
-        //     //   if (!context) return;
-        
-        //     //   context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    //     //   rectangles.forEach(({ start, end }) => drawRect(start, end)); // Redraw all saved rectangles
-    //     // };
-      
-    //     // Event listeners
-    //     canvas.addEventListener("mousedown", startDrawing);
-    //     canvas.addEventListener("mousemove", drawingCircle);
-    //     canvas.addEventListener("mouseup", stopDrawing);
+        // Set common styles for the drawing
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "black";
     
-    //     return () => {
-        //         canvas.addEventListener("mousedown", startDrawing);
-        //         canvas.addEventListener("mousemove", drawingCircle);
-        //         canvas.addEventListener("mouseup", stopDrawing);
-        //     };
-        //   }, []);
-        
-        //rectangle///////////////////////////////////////////////////////////////
-        // useEffect(() => {
-            //     if (!canvasRef.current) {
-                //       return;
-                //     }
+        let currentPencilPath: Position[] = []; // Track the current pencil path
+        let isDraw = false;
+        let startingPos: Position = { x: 0, y: 0 };
+    
+        const getPos = (e: MouseEvent): Position => {
+            const x = e.clientX - canvas.offsetLeft;
+            const y = e.clientY - canvas.offsetTop;
+            return { x, y };
+        };
+    
+        const drawPencil = (e: MouseEvent) => {
+            const endPos = getPos(e);
+            currentPencilPath.push(endPos); 
+            ctx.lineTo(endPos.x, endPos.y);
+            ctx.stroke();
+        };
+    
+        const drawRect = (e: MouseEvent) => {
+            const endPos = getPos(e);
+            const width = endPos.x - startingPos.x;
+            const height = endPos.y - startingPos.y;
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear for redraw
+            redrawShapes(); // Redraw saved shapes
+            ctx.strokeRect(startingPos.x, startingPos.y, width, height);
+        };
+    
+        const drawArc = (e: MouseEvent) => {
+            const endPos = getPos(e);
+            const radius = Math.abs(endPos.x - startingPos.x);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear for redraw
+            redrawShapes(); // Redraw saved shapes
+            ctx.beginPath();
+            ctx.arc(startingPos.x, startingPos.y, radius, 0, 2 * Math.PI);
+            ctx.stroke();
+        };
+    
+        const drawLine = (e: MouseEvent) => {
+            const endPos = getPos(e);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear for redraw
+            redrawShapes(); // Redraw saved shapes
+            ctx.beginPath();
+            ctx.moveTo(startingPos.x, startingPos.y);
+            ctx.lineTo(endPos.x, endPos.y);
+            ctx.stroke();
+        };
+    
+        const drawObject = (e: MouseEvent) => {
+      
+            if (!ctx || !isDraw) return;
+            if (currentTool === "PENCIL") {
+                drawPencil(e);
+            } else if (currentTool === "RECT") {
+                drawRect(e);
+            } else if (currentTool === "ARC") {
+                drawArc(e);
+            } else if (currentTool === "LINE") {
+                drawLine(e);
+            }
+        };
+      
+        const addShape = (type: "line" | "rect" | "arc" | "pencil", shape: (Position[]|{x:number,y:number,radius:number
+            startAngle:number,endAngle:number
+        }|{ x: number, y: number, width:number, height:number }|{ start: Position, end: Position })) => {
+            setShapes((prevShapes) => ({
+                ...prevShapes,
+                [type === "line"
+                    ? "lines"
+                    : type === "rect"
+                    ? "rects"
+                    : type === "arc"
+                    ? "arcs"
+                    : "pencils"]: [
+                    ...(type === "line"
+                        ? prevShapes.lines
+                        : type === "rect"
+                        ? prevShapes.rects
+                        : type === "arc"
+                        ? prevShapes.arcs
+                        : prevShapes.pencils),
+                    shape,
+                ],
+            }));
+        };
+    
+        const redrawShapes = () => {
+            if (!ctx || !canvas) return;
+    
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+         
+            shapes.lines.forEach(({ start, end }:{start:Position,end:Position}) => {
+                ctx.beginPath();
+               
+                ctx.moveTo(start.x, start.y);
+              
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+                ctx.closePath();
+            });
+    
+            // Redraw rectangles
+            shapes.rects.forEach(({ x, y, width, height }) => {
+                ctx.beginPath();
+                ctx.strokeRect(x, y, width, height);
+                ctx.closePath();
+            });
+    
+            // Redraw arcs
+            shapes.arcs.forEach(({ x, y, radius, startAngle, endAngle }) => {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, startAngle, endAngle);
+                ctx.stroke();
+                ctx.closePath();
+            });
+    
+            // Redraw pencil paths
+            shapes.pencils.forEach((path:[Position]) => {
+             
+               
+                if (path.length < 2) return;
+                ctx.beginPath();
+               
+                ctx.moveTo(path[0].x, path[0].y);
+              
+                path.forEach(({ x, y }) => {
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                });
                 
-                //     let isDraw = false;
-                //     const startingPos = { x: 0, y: 0 };
-    //     const canvas = canvasRef.current;
-    //     const context = canvas.getContext("2d");
-    //     const rectangles = []; // Store all finalized rectangles
+            });
+            // ctx.restore();
+        };
     
-    //     const startRect = (e: MouseEvent) => {
-        //       const x = e.clientX - canvas.offsetLeft;
-    //       const y = e.clientY - canvas.offsetTop;
-    //       startingPos.x = x;
-    //       startingPos.y = y;
-    //       isDraw = true;
-    //     };
-      
-    //     const createRect = (e: MouseEvent) => {
-        //       if (!isDraw) return;
-        
-        //       const x = e.clientX - canvas.offsetLeft;
-        //       const y = e.clientY - canvas.offsetTop;
-        
-    //       // Clear the canvas and redraw all finalized rectangles
-    //       redrawAllRectangles();
+        const mouseDownHandler = (e: MouseEvent) => {
+            isDraw = true;
+            startingPos = getPos(e);
+            if (currentTool === "PENCIL") {
+                
+       
+                ctx.beginPath();
+                ctx.moveTo(startingPos.x, startingPos.y);
+            }
+        };
     
-    //       // Draw the temporary rectangle
-    //       drawRect(startingPos, { x, y });
-    //     };
-      
-    //     const stopRect = (e: MouseEvent) => {
-    //       if (!isDraw) return;
-    //       isDraw = false;
-    
-    //       const x = e.clientX - canvas.offsetLeft;
-    //       const y = e.clientY - canvas.offsetTop;
-      
-    //       // Add the finalized rectangle to the array
-    //       rectangles.push({ start: { ...startingPos }, end: { x, y } });
-    
-    //       // Redraw everything to include the new rectangle
-    //       redrawAllRectangles();
-    //     };
-    
-    //     const drawRect = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-        //       if (!context) return;
-        
-        //       const width = end.x - start.x;
-        //       const height = end.y - start.y;
-      
-        //       context.strokeStyle = "black";
-    //       context.strokeRect(start.x, start.y, width, height);
-    //     };
-      
-    //     const redrawAllRectangles = () => {
-        //       if (!context) return;
-      
-    //       context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    //       rectangles.forEach(({ start, end }) => drawRect(start, end)); // Redraw all saved rectangles
-    //     };
-    
-    //     // Event listeners
-    //     canvas.addEventListener("mousedown", startRect);
-    //     canvas.addEventListener("mousemove", createRect);
-    //     canvas.addEventListener("mouseup", stopRect);
-      
-    //     return () => {
-    //       canvas.removeEventListener("mousedown", startRect);
-    //       canvas.removeEventListener("mousemove", createRect);
-    //       canvas.removeEventListener("mouseup", stopRect);
-    //     };
-    //   }, []);
-      
-    
-    //line///////////////////////////////////////
-    // useEffect(()=>{
-        //     if(!canvasRef.current){
-            //       return
-    //     }
-    //     const rectangles = []
-    //     let isDraw = false
-    //     const startingPos = {x:0,y:0}
-    //     const currentPos = {x:0,y:0}
-    //     const canvas = canvasRef.current
-    //     const context = canvas.getContext("2d")
-    //     const startRect = (e:MouseEvent) =>{
-    //           const x = e.clientX - canvas.offsetLeft
-    //           const y = e.clientY - canvas.offsetTop
-    //           // setStartPoint({x,y})
-    //           startingPos.x = x
-    //           startingPos.y = y
-    //           isDraw = true
-    //           // setIsDrawing(true)
-    //     }
-    //     const createRect = (e:MouseEvent) => {
-    //            if(!isDraw) return
-              
-    //            const x = e.clientX - canvas.offsetLeft
-    //           const y = e.clientY - canvas.offsetTop
-    //           //  setCurrentPoint({x,y})
-    //           currentPos.x = x
-    //           currentPos.y = y
-    //         //   redrawAllRectangles();
-    //            drawRect(startingPos,{x,y})
-    //     }
-    //     const drawRect = (start:{x:number,y:number},end:{x:number,y:number}) => {
-    //       if(!context ) return
+        const mouseMoveHandler = (e: MouseEvent) => {
          
-    //     //   context.clearRect(0, 0, canvas.width, canvas.height);
-    //       const width = end.x - start.x;
-    //       const height = end.y - start.y;
-    //       context.strokeStyle = "black";
-    //       context.strokeRect(start.x, start.y, width, height);
-        
-         
-    //     }
-    //     const stopRect = (e:MouseEvent) =>{
-    //         if (!isDraw) return;
-    //         isDraw = false;
-        
-    //         const x = e.clientX - canvas.offsetLeft;
-    //         const y = e.clientY - canvas.offsetTop;
-        
-    //         // Save the completed rectangle to the array
-    //         rectangles.push({ start: { ...startingPos }, end: { x, y } });
-    //         redrawAllRectangles(); // Redraw everything
-        
-        
-    //     }
+            drawObject(e);
+        };
     
-    //     const redrawAllRectangles = () => {
+        const mouseUpHandler = (e: MouseEvent) => {
+            isDraw = false;
+            if (currentTool === "PENCIL" && currentPencilPath.length > 1) {
+            
+                addShape("pencil", currentPencilPath); 
+                currentPencilPath = []
+            } else if (currentTool === "LINE") {
+                const endPos = getPos(e);
+                const newLine = { start: startingPos, end: endPos };
+                addShape("line", newLine);
+            } else if (currentTool === "RECT") {
+                const endPos = getPos(e);
+                const width = endPos.x - startingPos.x;
+                const height = endPos.y - startingPos.y;
+                const newRect = { x: startingPos.x, y: startingPos.y, width, height };
+                addShape("rect", newRect);
+            } else if (currentTool === "ARC") {
+                const endPos = getPos(e);
+                const radius = Math.abs(endPos.x - startingPos.x);
+                const newArc = { x: startingPos.x, y: startingPos.y, radius, startAngle: 0, endAngle: 2 * Math.PI };
+                addShape("arc", newArc);
+            }
+            // redrawShapes();
+        };
     
-    //         if (!context) return;
-        
-    //         // context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-    //         rectangles?.forEach(({ start, end }) => drawRect(start, end)); // Redraw all rectangles
-    //       };
-    //   //   const startDraw = (e:MouseEvent) => {
-    //   //      setIsDrawing(true)
-    //   //      context?.beginPath()
-    //   //      draw(e)
-    //   //   }
-    //   //   const draw = (e:MouseEvent)=> {
-    //   //     if(!isDrawing) return
-    //   //     const rect = canvas.getBoundingClientRect(); 
-    //   //     const x = e.clientX - rect.left;
-    //   //     const y = e.clientY - rect.top;  
-    //   //     // context?.clearRect(x,y,x+e.clientX,y+e.clientY )
-          
-    //   //     context?.lineTo(x, y);
-    //   //     context?.stroke();
-    //   //     context?.beginPath();
-    //   //     context?.moveTo(x, y);
-    //   //   }
-  
-    //   //   const stopdraw = () => {
-    //   //     setIsDrawing(false)
-    //   //     context?.beginPath()
-    //   //   }
-        
-    //     canvas.addEventListener("mousedown",startRect)
-    //     canvas.addEventListener("mousemove",createRect)
-    //     canvas.addEventListener("mouseup",stopRect)
-    //   //   canvas.addEventListener("mouseout",stopRect)
-  
-    //     return () => {
-    //       canvas.addEventListener("mousedown",startRect)
-    //     canvas.addEventListener("mousemove",createRect)
-    //     canvas.addEventListener("mouseup",stopRect)
-    //   //   canvas.addEventListener("mouseout",stopRect)
-    //     }
-    //   },[])
-
+        canvas.addEventListener("mousedown", mouseDownHandler);
+        canvas.addEventListener("mousemove", mouseMoveHandler);
+        canvas.addEventListener("mouseup", mouseUpHandler);
+    
+        return () => {
+            canvas.removeEventListener("mousedown", mouseDownHandler);
+            canvas.removeEventListener("mousemove", mouseMoveHandler);
+            canvas.removeEventListener("mouseup", mouseUpHandler);
+        };
+    }, [currentTool, shapes]);
+    
     const copyToClipBoard = () => {
         if(roomId){
            
@@ -406,7 +262,7 @@ const colors = ["red","green","yellow","green","red","slate","fuchsia","blue","s
 
     return (
         <div className=" h-screen space-y-5 ">
-            <div className="flex justify-center pt-5">
+            <div className="flex justify-center pt-5 ">
                 <ul className="  flex gap-2  max-w-fit px-5 py-2 rounded-xl   shadow-xl bg-purple-100/50  border  backdrop-blur-3xl  z-50">
                 {["msm1","msm3","msm3","mes","saq,","saquib","msm1","msm3","msm3","mes","saq,","saquib","msm1","msm3","msm3","mes","saq,","saquib"].map((username:string,id:number)=>
                 {  const bgColor = "bg-"+colors[id%colors.length] + "-500"
@@ -420,17 +276,17 @@ const colors = ["red","green","yellow","green","red","slate","fuchsia","blue","s
                 </ul>
             </div>
             <div className="flex">
-           <div className="flex flex-col gap-5 px-1 py-5 rounded-xl border-2 border-black absolute left-4 top-1/3">
-              <div className=" p-1 rounded-full hover:bg-purple-200/80">
+           <div className="flex flex-col gap-5 px-1 py-5 rounded-xl border-2 border-black absolute left-4 top-1/3 bg-white/60">
+              <div onClick={()=>setTool("PENCIL")} className=" p-1 rounded-full hover:bg-purple-200/80">
               <Pencil />
-              </div>
-              <div className="p-1 rounded-full hover:bg-purple-200/80">
+             </div>
+              <div onClick={()=>setTool("LINE")}  className="p-1 rounded-full hover:bg-purple-200/80">
               <Minus />
               </div>
-              <div className="p-1 rounded-full hover:bg-purple-200/80">
+              <div onClick={()=>setTool("RECT")}  className="p-1 rounded-full hover:bg-purple-200/80">
               <Square />
               </div>
-              <div className="p-1 rounded-full hover:bg-purple-200/80">
+              <div onClick={()=>setTool("ARC")}  className="p-1 rounded-full hover:bg-purple-200/80">
               <Circle />
               </div>
               
