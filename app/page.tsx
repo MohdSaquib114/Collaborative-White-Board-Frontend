@@ -3,10 +3,11 @@
 
 import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react"
+import {  useEffect, useRef, useState } from "react"
 import toast from 'react-hot-toast';
 import gsap from "gsap";
 import { useRoomContext } from "@/components/RoomContext";
+import { useWebSocket } from "@/lib/useWebSocket";
 
 
 
@@ -19,32 +20,31 @@ type FormType = {
 
 export default function Home() {
   const [formData,setFormData] = useState<FormType>({username:"",roomId:""})
-    const [webSocket,setWebSocket] = useState<WebSocket|null>(null)
+
     const [loading,setLoading] = useState(false)
     const router = useRouter()
     const canRef = useRef<HTMLCanvasElement>(null)
     const headingRef = useRef(null)
     const introRef = useRef(null)
     const formRef = useRef(null)
-    const {setRoomId,setHost} = useRoomContext()
-  
+    const {setRoomId,setUsername,setIsHost} = useRoomContext()
+   const socket = useWebSocket()
    
-  
 
+  
+  //  setUsername, setRoomId,
 
     useEffect(()=>{
-     const ws = new WebSocket("ws://localhost:8080")
-     setWebSocket(ws)
-      ws.onmessage = (e) => {
+      if(!socket) return 
+      socket.onmessage = (e) => {
         const response = JSON.parse(e.data)
         console.log(response)
         if(response.success){
-          if(response.type === "createRoom"){
-            console.log(response.host)
-            setHost(response.host)
-          }
          
-            setRoomId(response.roomId)
+           
+          
+          setUsername(response?.payload.username)
+          setRoomId(response?.payload.roomId)
             gsap.to(headingRef.current, {
               opacity:0,
               y:-20,
@@ -87,11 +87,8 @@ export default function Home() {
         }
         
       }
-     return () => {
-        ws.close();
-       
-      };
-    },[router,setHost,setRoomId])
+     
+    },[router,setRoomId,setUsername,socket])
 
     useEffect(() => {
       const canvas = canRef.current;
@@ -135,14 +132,20 @@ export default function Home() {
 
     const createRoom = (e: React.MouseEvent<HTMLButtonElement>)=>{
            try {
+
             e.preventDefault()
+            if(!socket) return
               if(formData.username){
-                webSocket?.send(JSON.stringify({
+                socket?.send(JSON.stringify({
                     type:"createRoom",
                     payload:{
                         username:formData.username
                     }
                 }))
+                if(!formData.roomId){
+                  console.log("Room id hai bhai")
+                  setIsHost(true)
+                }
                 setLoading(true)
                return 
               }
@@ -156,8 +159,9 @@ export default function Home() {
            try {
             console.log("clicked")
             e.preventDefault()
+            if(!socket) return
               if(formData.username && formData.roomId){
-                webSocket?.send(JSON.stringify({
+                socket?.send(JSON.stringify({
                     type:"addUser",
                     roomId:formData.roomId,
                     payload:{
