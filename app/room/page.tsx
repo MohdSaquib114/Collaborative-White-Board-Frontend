@@ -36,7 +36,7 @@ export default function Page() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-    const colors = ["red", "green", "yellow", "green", "red", "slate", "fuchsia", "blue", "sky", "cyan", "teal", "gray"]
+   console.log(messages)
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -54,7 +54,7 @@ export default function Page() {
 
             socket.onmessage = (e) => {
                 const data = JSON.parse(e.data)
-                console.log(data)
+               console.log(data)
                 switch (data.type) {
                     case "addUser":
                         if (!data.success) {
@@ -90,7 +90,7 @@ export default function Page() {
                             toast(data.message)
                             return
                         }
-                        console.log(data)
+                     
                         toast(`${data.payload.username} left the room`)
                         break;
 
@@ -315,6 +315,48 @@ export default function Page() {
         };
     }, [currentTool, shapes,roomId,socket]);
 
+    useEffect(() => {
+        
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+
+            shapes.lines.forEach(({ start, end }: { start: Position, end: Position }) => {
+                ctx.beginPath();
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
+                ctx.closePath();
+            });
+
+            shapes.rects.forEach(({ x, y, width, height }) => {
+                ctx.beginPath();
+                ctx.strokeRect(x, y, width, height);
+                ctx.closePath();
+            });
+
+            shapes.arcs.forEach(({ x, y, radius, startAngle, endAngle }) => {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, startAngle, endAngle);
+                ctx.stroke();
+                ctx.closePath();
+            });
+
+            shapes.pencils.forEach((path: [Position]) => {
+                if (path.length < 2) return;
+                ctx.beginPath();
+                ctx.moveTo(path[0].x, path[0].y);
+                path.forEach(({ x, y }) => {
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                });
+            });
+    }, [shapes]);
+    
+
     const copyToClipBoard = () => {
         if (roomId) {
             navigator.clipboard.writeText(roomId)
@@ -341,7 +383,9 @@ export default function Page() {
     }
 
     const handleMessage = () => {
+        console.log("object")
         if (!socket || message === "") return
+        console.log("messsagem",message)
         socket?.send(JSON.stringify({ type: "message", roomId: roomId, payload: { username: username, message: message } }))
         setMessage("")
     }

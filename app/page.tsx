@@ -38,7 +38,7 @@ export default function Home() {
       if(!socket) return 
       socket.onmessage = (e) => {
         const response = JSON.parse(e.data)
-        console.log(response)
+    
         if(response.success){
          
            
@@ -97,7 +97,6 @@ export default function Home() {
       const context = canvas.getContext("2d");
       if (!context) return;
     
-      // Set the drawing context
       context.strokeStyle = "black";
       context.lineWidth = 1;
       context.lineCap = "round";
@@ -143,7 +142,7 @@ export default function Home() {
                     }
                 }))
                 if(!formData.roomId){
-                  console.log("Room id hai bhai")
+                
                   setIsHost(true)
                 }
                 setLoading(true)
@@ -152,12 +151,12 @@ export default function Home() {
             toast("Username field is empty")
            } catch (error) {
                alert(error)
-               console.log(error)
+           
            }
     }
     const joinRoom = (e: React.MouseEvent<HTMLButtonElement>)=>{
            try {
-            console.log("clicked")
+       
             e.preventDefault()
             if(!socket) return
               if(formData.username && formData.roomId){
