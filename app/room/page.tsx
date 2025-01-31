@@ -24,7 +24,7 @@ export default function Page() {
     const [currentTool, setTool] = useState("PENCIL")
     const socket = useWebSocket()
     const [shapes, setShapes] = useState({ lines: [], rects: [], arcs: [], pencils: [] });
-    const [users, setUsers] = useState([])
+    const [users, setUsers] = useState<string[]>([])
     const [messages, setMessages] = useState<Message[]>([{username:"unknown", message:"Welcome"},]);
 
     const [message, setMessage] = useState('')
@@ -62,6 +62,7 @@ export default function Page() {
                             return
                         }
 
+                        setUsers(prev=>[...prev,data.payload.username])
                         toast(data.payload.message)
                         break;
 
@@ -91,6 +92,36 @@ export default function Page() {
                         }
                         console.log(data)
                         toast(`${data.payload.username} left the room`)
+                        break;
+
+                    case "canvasUpdate":
+                        if(!data.success){
+                            toast(data.payload.message)
+                            return
+                        }
+                        
+                        const {type,shape} = data.payload.canvasData
+                         setShapes((prevShapes) => ({
+                ...prevShapes,
+                [type === "line"
+                    ? "lines"
+                    : type === "rect"
+                        ? "rects"
+                        : type === "arc"
+                            ? "arcs"
+                            : "pencils"]: [
+                    ...(type === "line"
+                        ? prevShapes.lines
+                        : type === "rect"
+                            ? prevShapes.rects
+                            : type === "arc"
+                                ? prevShapes.arcs
+                                : prevShapes.pencils),
+                    shape,
+                ],
+            }));
+
+                       
                         break;
                 }
             }
@@ -188,10 +219,11 @@ export default function Page() {
                 ],
             }));
 
-            // Send the shape to the backend
+           
             if (socket) {
+                
                 socket.send(JSON.stringify({
-                    type: "drawShape",
+                    type: "canvasUpdate",
                     roomId: roomId,
                     payload: { type, shape }
                 }));
@@ -281,7 +313,7 @@ export default function Page() {
             canvas.removeEventListener("mousemove", mouseMoveHandler);
             canvas.removeEventListener("mouseup", mouseUpHandler);
         };
-    }, [currentTool, shapes]);
+    }, [currentTool, shapes,roomId,socket]);
 
     const copyToClipBoard = () => {
         if (roomId) {
@@ -319,7 +351,7 @@ export default function Page() {
             <div className="flex justify-evenly ">
                 <div className="flex justify-center pt-5 ">
                     <ul className=" flex gap-2 max-w-fit px-5 py-2 rounded-lg shadow-xl bg-purple-100/50 border-2 border-purple-200 backdrop-blur-3xl z-50">
-                        {
+                        {   users &&
                             users.map((username: string, id: number) =>
                                 <li key={id}>
                                     <div className={`rounded-full text-white bg-purple-800/50 w-8 h-8 flex items-center justify-center`}>{username[0].toUpperCase()}</div>
